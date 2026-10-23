@@ -1,41 +1,45 @@
 import { ProfileUI } from '@ui-pages';
 import { type SyntheticEvent, useEffect, useState } from 'react';
 
+import { selectUser, updateUser } from '@services/slices/user';
+import { useDispatch, useSelector } from '@services/store';
+
 export const Profile = (): React.JSX.Element => {
-  /** TODO: Взять переменную из стора */
-  const user = {
-    name: '',
-    email: '',
-  };
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const userName = user?.name ?? '';
+  const userEmail = user?.email ?? '';
 
   const [formValue, setFormValue] = useState({
-    name: user.name,
-    email: user.email,
+    name: userName,
+    email: userEmail,
     password: '',
   });
 
   useEffect(() => {
     setFormValue((prevState) => ({
       ...prevState,
-      name: user?.name || '',
-      email: user?.email || '',
+      name: userName,
+      email: userEmail,
     }));
-  }, [user]);
+  }, [userName, userEmail]);
 
   const isFormChanged =
-    formValue.name !== user?.name ||
-    formValue.email !== user?.email ||
-    !!formValue.password;
+    formValue.name !== userName || formValue.email !== userEmail || !!formValue.password;
 
   const handleSubmit = (e: SyntheticEvent): void => {
     e.preventDefault();
+    const { name, email, password } = formValue;
+    void dispatch(updateUser(password ? { name, email, password } : { name, email }))
+      .unwrap()
+      .then(() => setFormValue((prevState) => ({ ...prevState, password: '' })));
   };
 
   const handleCancel = (e: SyntheticEvent): void => {
     e.preventDefault();
     setFormValue({
-      name: user.name,
-      email: user.email,
+      name: userName,
+      email: userEmail,
       password: '',
     });
   };
